@@ -94,6 +94,48 @@ public class MusicService extends RESTService {
 
       /**
    * 
+   * postSong
+   *
+   * 
+   * @param payload  a JSONObject
+   * 
+   * @return Response 
+   * 
+   */
+  @POST
+  @Path("/songs")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.TEXT_PLAIN)
+  @ApiResponses(value = {
+       @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "response")
+  })
+  @ApiOperation(value = "postSong", notes = " ")
+  public Response postSong(String payload) {
+    JSONObject payload_JSON = (JSONObject) JSONValue.parse(payload);
+
+
+    Connection connection;
+
+    try {
+        connection = dbm.getConnection();
+
+        String songTitle = (String) payload_JSON.get("title");
+        String songArtist = (String) payload_JSON.get("artist");
+    
+        PreparedStatement statement = connection.prepareStatement("INSERT INTO songs (title, artist) VALUES(?,?);");
+        statement.setString(1, songTitle);
+        statement.setString(2, songArtist);
+        statement.executeUpdate();
+        statement.close();
+
+        return Response.ok("Success").build();
+    } catch (SQLException e) {
+        return Response.serverError().build();
+    }
+  }
+
+  /**
+   * 
    * getSongs
    *
    * 
@@ -124,7 +166,8 @@ public class MusicService extends RESTService {
         JSONArray a = new JSONArray();
         while(result.next()) {
             JSONObject songJson = new JSONObject();
-            songJson.put("title", result.getString("title"));
+            songJson.put("title", result.getString("title")); 
+            songJson.put("artist", result.getString("artist"));
             a.add(songJson);
         }
         statement.close();
